@@ -1,19 +1,18 @@
 ﻿using Microsoft.Win32;
-using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using WPF.Client;
 using WPF.Common;
 using WPF.Models;
 
-namespace WPF.Windows.PhongChucNang;
-public partial class NhapThietBiPhong : Window
+namespace WPF.Windows.Thuoc;
+public partial class NhapThuoc : Window
 {
-    public NhapThietBiPhong()
-    {
+	public NhapThuoc()
+	{
 		InitializeComponent();
 	}
-	private readonly ChiTietPCNThietBiClient _client = new();
+	private readonly ThuocClient _client = new();
 	private readonly ExcelClient _excel = new ExcelClient();
 	private void Header_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
 	{
@@ -69,7 +68,7 @@ public partial class NhapThietBiPhong : Window
 	{
 		try
 		{
-			var list = gridPreview.ItemsSource as List<ChiTietPCNThietBiRequest>;
+			var list = gridPreview.ItemsSource as List<ThuocRequest>;
 			if (list == null || !list.Any())
 			{
 				SnackbarHelper.ShowError("Chưa có dữ liệu preview");
@@ -77,22 +76,20 @@ public partial class NhapThietBiPhong : Window
 			}
 
 			// Convert sang DTO server mong đợi
-			var importList = list.Select(x => new ChiTietPCNThietBiRequest
+			var importList = list.Select(x => new ThuocRequest
 			{
-				PhongChucNangID = x.PhongChucNangID,
-				ThietBiID = x.ThietBiID,
-				MaTaiSan = x.MaTaiSan,
-				GhiChu = x.GhiChu
+				TenThuoc = x.TenThuoc,
+				HoatChat = x.HoatChat
 			}).ToList();
 
-			var confirm = await MessageHelper.Confirm("Bạn có chắc muốn lưu các thiết bị - phòng này không?");
+			var confirm = await MessageHelper.Confirm("Bạn có chắc muốn lưu các thuốc này không?");
 			if (!confirm) return;
 
 			var confirmResult = await _client.ConfirmImport(importList);
 
 			if (confirmResult.Success == true)
 			{
-				SnackbarHelper.ShowSuccess("Thêm thiết bị - phòng thành công");
+				SnackbarHelper.ShowSuccess("Thêm thuốc thành công");
 				this.DialogResult = true;
 				Close();
 			}
@@ -101,9 +98,9 @@ public partial class NhapThietBiPhong : Window
 				SnackbarHelper.ShowError($"Lỗi khi lưu: {confirmResult.Message}");
 			}
 		}
-		catch (Exception ex)
+		catch
 		{
-			SnackbarHelper.ShowError("Có lỗi xảy ra khi lưu:" + ex.Message);
+			SnackbarHelper.ShowError("Có lỗi xảy ra khi lưu.");
 		}
 	}
 
@@ -111,7 +108,7 @@ public partial class NhapThietBiPhong : Window
 	{
 		try
 		{
-			var list = gridPreview.ItemsSource as List<ChiTietPCNThietBiRequest>;
+			var list = gridPreview.ItemsSource as List<ThuocRequest>;
 			if (list == null || !list.Any())
 			{
 				SnackbarHelper.ShowError("Chưa có dữ liệu preview");
@@ -137,9 +134,9 @@ public partial class NhapThietBiPhong : Window
 			btnLuu.IsEnabled = true;
 			SnackbarHelper.ShowSuccess($"Validate thành công! {validateResult.Data?.Data.Count ?? 0} dòng hợp lệ.");
 		}
-		catch (Exception ex)
+		catch
 		{
-			SnackbarHelper.ShowError("Có lỗi xảy ra khi validate: "+ ex.Message);
+			SnackbarHelper.ShowError("Có lỗi xảy ra khi validate");
 		}
 	}
 	private void btnHuy_Click(object sender, RoutedEventArgs e)
@@ -147,3 +144,4 @@ public partial class NhapThietBiPhong : Window
 		this.Close();
 	}
 }
+

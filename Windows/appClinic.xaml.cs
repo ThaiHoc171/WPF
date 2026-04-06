@@ -159,5 +159,14 @@ namespace WPF.Windows
 			OpenPage(new LichSuCaKhamPage(), "Lịch sử ca khám");
 		}
 
-}
+		private void btnThuoc_Click(object sender, RoutedEventArgs e)
+		{
+			OpenPage(new ThuocPage(), "Quản lý thuốc");
+		}
+
+		private void btnLoaiBenh_Click(object sender, RoutedEventArgs e)
+		{
+			OpenPage(new LoaiBenhPage(), "Quản lý loại bệnh");
+		}
+	}
 }

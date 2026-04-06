@@ -3,33 +3,30 @@ using WPF.Client;
 using WPF.Common;
 using WPF.Models;
 
-namespace WPF.Windows.ChucVu;
-
-public partial class ThemChucVu : Window
+namespace WPF.Windows.Thuoc;
+public partial class ThemThuoc : Window
 {
-	public ThemChucVu()
+	public ThemThuoc()
 	{
 		InitializeComponent();
-		btnActive.IsChecked = true;
 	}
-	private readonly ChucVuClient _client = new ChucVuClient();
+	private readonly ThuocClient _client = new();
 	private async void btnLuu_Click(object sender, EventArgs e)
 	{
 		if (string.IsNullOrWhiteSpace(txtName.Text))
 		{
-			SnackbarHelper.ShowError("Vui lòng nhập tên chức vụ!");
+			SnackbarHelper.ShowError("Vui lòng nhập tên thuốc!");
 			return;
 		}
-		if (string.IsNullOrWhiteSpace(txtDescription.Text))
+		if (string.IsNullOrWhiteSpace(txtActiveIngredient.Text))
 		{
-			SnackbarHelper.ShowError("Vui lòng nhập mô tả!");
+			SnackbarHelper.ShowError("Vui lòng nhập hoạt chất!");
 			return;
 		}
-		var req = new ChucVuRequest
+		var req = new ThuocRequest
 		{
-			TenChucVu = txtName.Text.Trim(),
-			MoTa = txtDescription.Text.Trim(),
-			TrangThai = btnActive.IsChecked == true ? "Hoạt động" : "Vô hiệu"
+			TenThuoc = txtName.Text.Trim(),
+			HoatChat = txtActiveIngredient.Text.Trim()
 		};
 
 		try

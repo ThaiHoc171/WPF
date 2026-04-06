@@ -126,8 +126,6 @@ public partial class CaKhamDaXacNhan : Page, INotifyPropertyChanged
 		}
 	}
 	#endregion
-	private string _loaiCaKham = "KHAM";
-
 	public CaKhamDaXacNhan()
 	{
 		InitializeComponent();

@@ -159,7 +159,6 @@ public partial class LichSuCaKhamPage : Page,INotifyPropertyChanged
 		}
 	}
 	#endregion
-	private string _loaiCaKham = "KHAM";
 
 	private void SetupColumns()
 	{

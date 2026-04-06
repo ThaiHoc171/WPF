@@ -127,8 +127,6 @@ public partial class CaKhamTrongPage : Page, INotifyPropertyChanged
 		}
 	}
 	#endregion
-	private string _loaiCaKham = "KHAM";
-
 	public CaKhamTrongPage()
 	{
 		InitializeComponent();

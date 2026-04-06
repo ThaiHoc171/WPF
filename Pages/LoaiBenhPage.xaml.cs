@@ -8,16 +8,30 @@ using System.Windows.Input;
 using WPF.Client;
 using WPF.Common;
 using WPF.Models;
-using WPF.Windows.CaKham;
+using WPF.Windows.LoaiBenh;
+using WPF.Windows.Thuoc;
 
-namespace WPF.Pages.CaKham;
+namespace WPF.Pages;
 
-public partial class CaKhamChoPage : Page, INotifyPropertyChanged
+public partial class LoaiBenhPage : Page,INotifyPropertyChanged
 {
-	
-	private readonly CaKhamClient _client = new();
-	#region Paged
-	public ObservableCollection<CaKhamListReadModel> Items { get; set; } = new();
+	public LoaiBenhPage()
+	{
+		InitializeComponent();
+		DataContext = this;
+		SetupDataGrid.ApplyStyle(GridContent);
+		SetupColumns();
+		Loaded += async (_, __) => await LoadData();
+		PreviewMouseDown += async (_, __) =>
+		{
+			if (txtSizepage.IsKeyboardFocusWithin)
+			{
+				await ApplyPageSize();
+			}
+		};
+	}
+	#region paged
+
 
 	private int _page = 1;
 	public int Page
@@ -25,14 +39,12 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 		get => _page;
 		set { _page = value; OnPropertyChanged(); }
 	}
-
 	private int _sizePage = 15;
 	public int SizePage
 	{
 		get => _sizePage;
 		set { _sizePage = value; OnPropertyChanged(); }
 	}
-
 	private int _totalPages;
 	public int TotalPages
 	{
@@ -41,6 +53,7 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 	}
 
 	public string PageDisplay => $"{Page} / {TotalPages}";
+	public bool CanGoPrev => Page > 1;
 	public bool CanGoNext => Page < TotalPages;
 
 	private bool _isLoading;
@@ -57,8 +70,8 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 		set { _keyword = value; OnPropertyChanged(); }
 	}
 
-	private string _lastSizeText = "";
 
+	private string _lastSizeText = "";
 	private async Task ApplyPageSize()
 	{
 		if (txtSizepage.Text == _lastSizeText) return;
@@ -71,19 +84,17 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 			await LoadData();
 		}
 	}
-
 	private async void SizePage_KeyDown(object sender, KeyEventArgs e)
 	{
 		if (e.Key == Key.Enter)
+		{
 			await ApplyPageSize();
+		}
 	}
-
 	private async void SizePage_LostFocus(object sender, RoutedEventArgs e)
 	{
 		await ApplyPageSize();
 	}
-
-	// PAGING
 	private async void Next_Click(object sender, RoutedEventArgs e)
 	{
 		if (Page < TotalPages)
@@ -115,7 +126,6 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
-
 	private void OnPropertyChanged([CallerMemberName] string name = "")
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -124,28 +134,13 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 		{
 			OnPropertyChanged(nameof(PageDisplay));
 			OnPropertyChanged(nameof(CanGoNext));
+			OnPropertyChanged(nameof(CanGoPrev));
 		}
 	}
 	#endregion
-	public CaKhamChoPage()
-	{
-		InitializeComponent();
+	public ObservableCollection<LoaiBenhListReadModel> Items { get; set; } = new();
 
-		DataContext = this;
-
-		SetupDataGrid.ApplyStyle(GridContent);
-
-		SetupColumns();
-
-		Loaded += async (_, __) => await LoadData();
-
-		PreviewMouseDown += async (_, __) =>
-		{
-			if (txtSizepage.IsKeyboardFocusWithin)
-				await ApplyPageSize();
-		};
-	}
-
+	private readonly LoaiBenhClient _client = new();
 	private void SetupColumns()
 	{
 		GridContent.Columns.Clear();
@@ -154,48 +149,32 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 		{
 			Header = "Mã",
 			Visibility = Visibility.Collapsed,
-			Binding = new Binding("CaKhamID"),
+			Binding = new Binding("LoaiBenhID"),
 			Width = new DataGridLength(1, DataGridLengthUnitType.Star)
 		});
+
 		GridContent.Columns.Add(new DataGridTextColumn
 		{
-			Header = "Họ và tên",
-			Binding = new Binding("HoTen"),
-			Width = new DataGridLength(3, DataGridLengthUnitType.Star)
+			Header = "Tên Bệnh",
+			Binding = new Binding("TenBenh"),
+			Width = new DataGridLength(2, DataGridLengthUnitType.Star)
 		});
+
 		GridContent.Columns.Add(new DataGridTextColumn
 		{
-			Header = "Lý do",
-			Binding = new Binding("LyDoKham"),
+			Header = "Nhóm bệnh",
+			Binding = new Binding("NhomBenh"),
 			Width = new DataGridLength(2, DataGridLengthUnitType.Star)
 		});
 		GridContent.Columns.Add(new DataGridTextColumn
 		{
-			Header = "Ngày khám",
-			Binding = new Binding("NgayKham")
-			{
-				StringFormat = "dd/MM/yyyy"
-			},
+			Header = "Độ nghiêm trọng",
+			Binding = new Binding("MucDoNghiemTrong"),
 			Width = new DataGridLength(2, DataGridLengthUnitType.Star)
 		});
-		
-		GridContent.Columns.Add(new DataGridTextColumn
-		{
-			Header = "Khung giờ",
-			Binding = new Binding("TenKhungGio"),
-			Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-		});
 
-
-		GridContent.Columns.Add(new DataGridTextColumn
-		{
-			Header = "Trạng thái",
-			Binding = new Binding("TrangThai"),
-			Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-		});
-
-		GridContent.Columns.Add(SetupDataGrid.CreateIconButtonColumn("Check", Accept_Click, "Xác nhận"));
-		GridContent.Columns.Add(SetupDataGrid.CreateIconButtonColumn("Cancel", Cancel_Click, "Từ chối"));
+		GridContent.Columns.Add(SetupDataGrid.CreateIconButtonColumn("Pencil", Edit_Click, "Sửa"));
+		//GridContent.Columns.Add(SetupDataGrid.CreateIconButtonColumn("Delete", Delete_Click, "Xóa"));
 	}
 
 	private async Task LoadData()
@@ -203,12 +182,17 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 		try
 		{
 			IsLoading = true;
-			var res = await _client.ChoXacNhan(Page,SizePage);
+
+			var res = string.IsNullOrWhiteSpace(Keyword)
+				? await _client.Paged(Page, SizePage)
+				: await _client.Search(Keyword, Page, SizePage);
+
 			if (!res.Success)
 			{
 				await MessageHelper.ShowMessage(res.Message);
 				return;
 			}
+
 			if (res.Data == null) return;
 
 			Items.Clear();
@@ -216,11 +200,9 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 			foreach (var item in res.Data.Items)
 				Items.Add(item);
 
-			TotalPages = (int)Math.Ceiling(
-				(double)res.Data.TotalCount / res.Data.PageSize);
+			TotalPages = (int)Math.Ceiling((double)res.Data.TotalCount / res.Data.PageSize);
 
 			var view = CollectionViewSource.GetDefaultView(GridContent.ItemsSource);
-
 			view.SortDescriptions.Clear();
 		}
 		finally
@@ -228,39 +210,66 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 			IsLoading = false;
 		}
 	}
-
-
-	// REFRESH
-	private async void Refresh_Click(object sender, RoutedEventArgs e)
+	private async void Search_Click(object sender, RoutedEventArgs e)
 	{
 		Page = 1;
 		await LoadData();
 	}
-	// REGISTER
-	private async void Accept_Click(object sender, RoutedEventArgs e)
+
+	private async void Refresh_Click(object sender, RoutedEventArgs e)
 	{
-		if (sender is Button btn && btn.Tag is CaKhamListReadModel item)
-		{
-			var confirm = await MessageHelper.Confirm("Xác nhận đăng ký ca khám cho bệnh nhân này?");
-			if(!confirm)
-				return;
-			var req = new CaKhamTrangThaiDTO
-			{
-				TrangThai = "Đã xác nhận",
-				GhiChu = null
-			};
-			var result = await _client.UpdateTrangThai(item.CaKhamID, req);
-			
-			if (result.Success)
-			{
-				await LoadData();
-				SnackbarHelper.ShowSuccess("Ca khám đã được xác nhận!");
-			}
-		}
+		txt_Search.Text = "";
+		await LoadData();
+		Page = 1;
 	}
-	private async void Cancel_Click(object sender, RoutedEventArgs e)
+	private async void Add_Click(object sender, RoutedEventArgs e)
 	{
-		if (sender is Button btn && btn.Tag is CaKhamListReadModel item)
+		var parentWindow = Window.GetWindow(this);
+		var overlay = parentWindow.FindName("Overlay") as Border;
+
+		if (overlay != null)
+			overlay.Visibility = Visibility.Visible;
+
+		var win = new ThemLoaiBenh
+		{
+			Owner = parentWindow
+		};
+		var result = win.ShowDialog();
+		if (result == true)
+		{
+			await LoadData();
+			SnackbarHelper.ShowSuccess("Thêm loại bệnh thành công!");
+		}
+
+		if (overlay != null)
+			overlay.Visibility = Visibility.Collapsed;
+	}
+	private async void Import_Click(object sender, RoutedEventArgs e)
+	{
+		var parentWindow = Window.GetWindow(this);
+		var overlay = parentWindow.FindName("Overlay") as Border;
+
+		if (overlay != null)
+			overlay.Visibility = Visibility.Visible;
+
+		var win = new NhapLoaiBenh
+		{
+			Owner = parentWindow
+		};
+		var result = win.ShowDialog();
+		if (result == true)
+		{
+			await LoadData();
+			SnackbarHelper.ShowSuccess("Nhập loại bệnh từ excel thành công!");
+		}
+
+		if (overlay != null)
+			overlay.Visibility = Visibility.Collapsed;
+	}
+	// ===== EDIT =====
+	private async void Edit_Click(object sender, RoutedEventArgs e)
+	{
+		if (sender is Button btn && btn.Tag is LoaiBenhListReadModel item)
 		{
 			var parentWindow = Window.GetWindow(this);
 			var overlay = parentWindow.FindName("Overlay") as Border;
@@ -268,17 +277,15 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 			if (overlay != null)
 				overlay.Visibility = Visibility.Visible;
 
-			var win = new TuChoiCaKham(item.CaKhamID)
+			var win = new CapNhatLoaiBenh(item.LoaiBenhID)
 			{
 				Owner = parentWindow
 			};
-
 			var result = win.ShowDialog();
-
 			if (result == true)
 			{
 				await LoadData();
-				SnackbarHelper.ShowSuccess("Ca khám đã được hủy!");
+				SnackbarHelper.ShowSuccess("Cập nhật thuốc thành công!");
 			}
 
 			if (overlay != null)
@@ -286,15 +293,33 @@ public partial class CaKhamChoPage : Page, INotifyPropertyChanged
 		}
 	}
 
-	private async void cbCategory_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		Page = 1;
-		await LoadData();
-	}
+	//private async void Delete_Click(object sender, RoutedEventArgs e)
+	//{
+	//	if (sender is Button btn && btn.Tag is ThuocReadModel item)
+	//	{
+	//		var parentWindow = Window.GetWindow(this);
+	//		var overlay = parentWindow.FindName("Overlay") as Border;
 
-	private async void dtpDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
-	{
-		Page = 1;
-		await LoadData();
-	}
+	//		if (overlay != null)
+	//			overlay.Visibility = Visibility.Visible;
+	//		var confirm = await MessageHelper.Confirm($"Bạn có chắc muốn xóa thuốc '{item.TenThuoc}' không?");
+	//		if (!confirm)
+	//		{
+	//			if (overlay != null)
+	//				overlay.Visibility = Visibility.Collapsed;
+	//			return;
+	//		}
+	//		var result = await _client.Delete(item.ThuocID);
+
+	//		if (result.Success)
+	//		{
+	//			await LoadData();
+	//			SnackbarHelper.ShowSuccess($"Thuốc{item.TenThuoc} đã đã được xóa");
+	//		}
+
+	//		if (overlay != null)
+	//			overlay.Visibility = Visibility.Collapsed;
+	//	}
+	//}
 }
+

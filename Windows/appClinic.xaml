@@ -186,14 +186,14 @@
                                 </Expander.Header>
 
                                 <StackPanel>
-                                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="White">
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" Click="btnThuoc_Click">
                                         <StackPanel Orientation="Horizontal">
                                             <materialDesign:PackIcon Kind="Pill"/>
                                             <TextBlock x:Name="txtThuoc" Text=" Thuốc" Margin="10,0,0,0"/>
                                         </StackPanel>
                                     </Button>
 
-                                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="White">
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" Click="btnLoaiBenh_Click">
                                         <StackPanel Orientation="Horizontal">
                                             <materialDesign:PackIcon Kind="Virus"/>
                                             <TextBlock x:Name="txtLoaiBenh" Text=" Loại bệnh" Margin="10,0,0,0"/>
